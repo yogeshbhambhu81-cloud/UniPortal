@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/signup.css">
+</head>
+<body>
+    <main>
+        <h1>Signup</h1>
+        <form action="/signup" method="post" >
+            <input id="name" type="text" name="name" placeholder="enter name"><br>
+            <input id="username" type="text" name="username" placeholder = "enter username"><br>
+            <input id="password" type="password" name="password" placeholder = "enter password"><br>
+            <select name="role" >
+                <option>user</option>
+                <option>admin</option>
+            </select>
+            <!-- <input type="file" id="img" name="profile_picture"><br> -->
+            <button id="btn">signup</button>
+        </form>
+        <p>Already a user ?<a href="/login">login</a> </p>
+    </main>
+    <!-- <script>
+        const name = document.getElementById('name')
+        const username = document.getElementById("username")
+        const password = document.getElementById('password')
+        const button = document.getElementById("btn")
+
+        button.addEventListener('click', (e)=>{
+            e.preventDefault()
+
+            let dataObj = {
+                name : name.value,
+                username : username.value,
+                password : password.value,
+            }
+
+            fetch("/signup",{
+                method: "POST",
+                headers: {
+                    'Content-Type' : 'application/json'
+                },
+                body: JSON.stringify(dataObj)
+            })
+        })
+    </script> -->
+</body>
+</html>
