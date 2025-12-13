@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeftOnRectangleIcon, AcademicCapIcon } from "@heroicons/react/24/outline";
 
 export default function Admin() {
-  const navigate = useNavigate();
   const [users, setUsers] = useState({ student: [], professor: [], hod: [], counts: {} });
   const [pending, setPending] = useState([]);
   const [selectedRole, setSelectedRole] = useState(null);
@@ -110,106 +106,142 @@ export default function Admin() {
     : [];
 
   const roleColors = {
-    professor: "from-indigo-100 to-sky-100 border-indigo-200",
-    student: "from-emerald-100 to-teal-100 border-emerald-200",
-    hod: "from-amber-100 to-orange-100 border-amber-200",
+    professor: "from-blue-50 to-indigo-50 border-blue-200",
+    student: "from-emerald-50 to-teal-50 border-emerald-200",
+    hod: "from-slate-50 to-gray-100 border-slate-300",
+  };
+
+  const roleIcons = {
+    professor: "👨‍🏫",
+    student: "🎓",
+    hod: "👔",
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200 text-slate-900 p-6">
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
-            transition={{ duration: 0.3 }}
-            className={`fixed top-5 right-5 z-50 p-4 rounded-xl shadow-xl text-sm font-medium transition-colors ${
-              toast.isError ? "bg-rose-500 text-white" : "bg-emerald-500 text-white"
-            }`}
-          >
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 text-slate-800 p-6">
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium backdrop-blur-sm ${
+            toast.isError
+              ? "bg-red-50 border border-red-200 text-red-700"
+              : "bg-emerald-50 border border-emerald-200 text-emerald-700"
+          }`}
+          style={{
+            animation: 'slideInRight 0.3s ease-out forwards'
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-lg">{toast.isError ? "✕" : "✓"}</span>
             {toast.message}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
 
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-              University Admin Panel
+      <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+        <div className="flex items-center justify-between mb-4">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-semibold text-slate-800">
+              Admin Dashboard
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Assignment system overview & user management
+            <p className="text-sm text-slate-500">
+              Manage users and oversee university operations
             </p>
           </div>
 
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-2 items-center">
             <button
               onClick={handleManageDepartments}
-              className="p-2 rounded-full bg-indigo-500 hover:bg-indigo-400 shadow-sm"
+              className="p-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all"
+              title="Manage Departments"
             >
-              <AcademicCapIcon className="h-5 w-5 text-white" />
+              <svg className="h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+              </svg>
             </button>
 
             <button
               onClick={handleLogout}
-              className="p-2 rounded-full bg-rose-500 hover:bg-rose-400 shadow-sm"
+              className="p-2.5 rounded-lg bg-white border border-slate-200 hover:border-red-300 hover:bg-red-50 transition-all"
+              title="Logout"
             >
-              <ArrowLeftOnRectangleIcon className="h-5 w-5 text-white" />
+              <svg className="h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
             </button>
           </div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-5"
-        >
-          {["professor", "student", "hod"].map((role) => (
-            <motion.div
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {["professor", "student", "hod"].map((role, idx) => (
+            <div
               key={role}
-              whileHover={{ y: -4 }}
-              className={`p-5 rounded-2xl border bg-gradient-to-r ${roleColors[role]} shadow-sm cursor-pointer transition`}
+              className={`relative p-5 rounded-xl bg-gradient-to-br ${roleColors[role]} border shadow-sm cursor-pointer overflow-hidden group transition-all hover:shadow-md hover:-translate-y-1`}
               onClick={() => handleRoleSelect(role)}
+              style={{
+                animation: `fadeInUp 0.4s ease-out ${0.1 + idx * 0.1}s forwards`,
+                opacity: 0
+              }}
             >
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-semibold capitalize">{role}</h3>
-                  <p className="text-xs text-slate-600">
-                    {role === "student"
-                      ? "Enrolled learners"
-                      : role === "professor"
-                      ? "Course evaluators"
-                      : "Department heads"}
-                  </p>
+              <div className="absolute inset-0 bg-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              <div className="relative z-10">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="space-y-1">
+                    <div className="text-3xl mb-1">{roleIcons[role]}</div>
+                    <h3 className="text-lg font-semibold text-slate-700 capitalize">{role}</h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      {role === "student"
+                        ? "Enrolled learners"
+                        : role === "professor"
+                        ? "Course evaluators"
+                        : "Department heads"}
+                    </p>
+                  </div>
+                  <div className="text-right bg-white/60 px-3 py-2 rounded-lg">
+                    <div className="text-3xl font-bold text-slate-700">
+                      {users.counts?.[role] ?? 0}
+                    </div>
+                    <div className="text-xs text-slate-500 font-medium">Total</div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold">{users.counts?.[role] ?? 0}</div>
-                  <div className="text-xs text-slate-500">Total</div>
+
+                <div className="h-1 bg-slate-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-slate-400"
+                    style={{
+                      animation: `progress 1s ease-out ${0.2 + idx * 0.1}s forwards`,
+                      width: 0
+                    }}
+                  />
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/90 backdrop-blur border border-slate-200 rounded-2xl p-6 shadow-sm"
-        >
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h2 className="text-xl font-semibold">
-                {selectedRole ? `${selectedRole.toUpperCase()} Details` : "All Users Overview"}
+        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <div className="flex justify-between items-start mb-5">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-slate-800">
+                {selectedRole ? (
+                  <span className="flex items-center gap-2">
+                    <span className="text-2xl">{roleIcons[selectedRole]}</span>
+                    {selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} Directory
+                  </span>
+                ) : (
+                  "User Management"
+                )}
               </h2>
               {selectedRole && (
-                <div className="mt-3 flex items-center gap-3">
-                  <label className="text-sm text-slate-600">Filter by Department:</label>
+                <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200 animate-slide-in">
+                  <label className="text-sm text-slate-600 font-medium">
+                    Filter by Department:
+                  </label>
                   <select
                     value={selectedDepartment}
                     onChange={(e) => setSelectedDepartment(e.target.value)}
-                    className="p-1.5 rounded-md border border-slate-300 text-sm bg-slate-50"
+                    className="px-3 py-1.5 rounded-md border border-slate-300 text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                   >
                     <option value="all">All Departments</option>
                     {departments.map((dept) => (
@@ -225,139 +257,248 @@ export default function Admin() {
             {selectedRole && (
               <button
                 onClick={() => setSelectedRole(null)}
-                className="text-xs px-3 py-1 rounded-full border border-slate-300 hover:bg-slate-50"
+                className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-sm font-medium transition-all"
               >
-                Clear Role Filter
+                Clear Filter
               </button>
             )}
           </div>
 
           {loading ? (
-            <div className="text-center py-12 text-slate-500">Loading...</div>
+            <div className="text-center py-16">
+              <div className="inline-block w-10 h-10 border-3 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+              <p className="text-slate-500 mt-3 text-sm font-medium">Loading data...</p>
+            </div>
           ) : selectedRole ? (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="text-xs uppercase tracking-wide text-slate-500 border-b border-slate-300">
-                  <th className="py-3">Name</th>
-                  <th className="py-3">Email</th>
-                  <th className="py-3">Department</th>
-                  <th className="py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((u) => (
-                  <tr key={u._id} className="hover:bg-slate-50 transition">
-                    <td className="py-3">{u.name}</td>
-                    <td className="py-3">{u.email}</td>
-                    <td className="py-3">
-                      {departments.find((d) => d.slug === u.department)?.name ||
-                        u.department ||
-                        "N/A"}
-                    </td>
-                    <td className="py-3 flex gap-2">
-                      <button
-                        onClick={() => setConfirmDelete(u)}
-                        className="px-3 py-1 bg-rose-500 text-white rounded-md text-xs hover:bg-rose-400"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : null}
-
-          <div className="mt-10">
-            <h3 className="text-lg font-semibold mb-3">Pending User Requests</h3>
-
-            {pending.length === 0 ? (
-              <p className="text-slate-500 text-sm py-6">No pending signup requests.</p>
-            ) : (
+            <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
-                    <th className="py-3">Name</th>
-                    <th className="py-3">Email</th>
-                    <th className="py-3">Role</th>
-                    <th className="py-3">Department</th>
-                    <th className="py-3">Actions</th>
+                  <tr className="text-xs uppercase tracking-wide text-slate-500 border-b-2 border-slate-200">
+                    <th className="py-3 px-4 font-semibold">Name</th>
+                    <th className="py-3 px-4 font-semibold">Email</th>
+                    <th className="py-3 px-4 font-semibold">Department</th>
+                    <th className="py-3 px-4 font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {pending.map((u) => (
-                    <tr key={u._id} className="hover:bg-slate-50 transition">
-                      <td className="py-3">{u.name}</td>
-                      <td className="py-3">{u.email}</td>
-                      <td className="py-3 capitalize">{u.role}</td>
-                      <td className="py-3 capitalize">
+                <tbody className="text-sm">
+                  {filteredUsers.map((u, idx) => (
+                    <tr
+                      key={u._id}
+                      className="hover:bg-slate-50 transition-colors border-b border-slate-100"
+                      style={{
+                        animation: `fadeIn 0.3s ease-out ${idx * 0.03}s forwards`,
+                        opacity: 0
+                      }}
+                    >
+                      <td className="py-3 px-4 font-medium text-slate-700">{u.name}</td>
+                      <td className="py-3 px-4 text-slate-600">{u.email}</td>
+                      <td className="py-3 px-4 text-slate-600">
                         {departments.find((d) => d.slug === u.department)?.name ||
                           u.department ||
                           "N/A"}
                       </td>
-                      <td className="py-3 flex gap-2">
+                      <td className="py-3 px-4">
                         <button
-                          onClick={() => approveUser(u._id)}
-                          className="px-3 py-1 bg-emerald-500 text-white rounded-md text-xs hover:bg-emerald-400"
+                          onClick={() => setConfirmDelete(u)}
+                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded-md text-xs font-medium transition-all"
                         >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => rejectUser(u._id)}
-                          className="px-3 py-1 bg-rose-500 text-white rounded-md text-xs hover:bg-rose-400"
-                        >
-                          Reject
+                          Delete
                         </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+          ) : null}
+
+          <div className="mt-10 pt-6 border-t border-slate-200">
+            <h3 className="text-lg font-semibold mb-4 text-slate-800 flex items-center gap-2">
+              <span className="text-xl">⏳</span>
+              Pending Approvals
+            </h3>
+
+            {pending.length === 0 ? (
+              <div className="text-center py-10 bg-slate-50 rounded-lg border border-slate-200">
+                <span className="text-4xl mb-2 block">✓</span>
+                <p className="text-slate-500 text-sm font-medium">
+                  No pending requests at this time
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="text-xs uppercase tracking-wide text-slate-500 border-b-2 border-slate-200">
+                      <th className="py-3 px-4 font-semibold">Name</th>
+                      <th className="py-3 px-4 font-semibold">Email</th>
+                      <th className="py-3 px-4 font-semibold">Role</th>
+                      <th className="py-3 px-4 font-semibold">Department</th>
+                      <th className="py-3 px-4 font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm">
+                    {pending.map((u, idx) => (
+                      <tr
+                        key={u._id}
+                        className="hover:bg-slate-50 transition-colors border-b border-slate-100"
+                        style={{
+                          animation: `fadeIn 0.3s ease-out ${idx * 0.03}s forwards`,
+                          opacity: 0
+                        }}
+                      >
+                        <td className="py-3 px-4 font-medium text-slate-700">{u.name}</td>
+                        <td className="py-3 px-4 text-slate-600">{u.email}</td>
+                        <td className="py-3 px-4 capitalize text-slate-600">{u.role}</td>
+                        <td className="py-3 px-4 text-slate-600">
+                          {departments.find((d) => d.slug === u.department)?.name ||
+                            u.department ||
+                            "N/A"}
+                        </td>
+                        <td className="py-3 px-4 flex gap-2">
+                          <button
+                            onClick={() => approveUser(u._id)}
+                            className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-md text-xs font-medium transition-all"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => rejectUser(u._id)}
+                            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded-md text-xs font-medium transition-all"
+                          >
+                            Reject
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
 
-      <AnimatePresence>
-        {confirmDelete && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 flex items-center justify-center"
+      {/* Delete confirmation modal */}
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+          onClick={() => setConfirmDelete(null)}
+        >
+          <div
+            className="bg-white rounded-xl p-6 w-[400px] shadow-xl border border-slate-200 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-              className="bg-white rounded-xl p-6 w-[350px]"
-            >
-              <h3 className="text-lg font-semibold mb-2 text-rose-600">Confirm Deletion</h3>
-              <p className="text-sm text-slate-700">
-                Are you sure you want to delete {confirmDelete.name} ({confirmDelete.role})?
-              </p>
-              <p className="text-xs text-rose-500 mt-2">
-                This will delete the user and all associated assignments & files.
-              </p>
+            <div className="text-5xl mb-3 text-center">⚠️</div>
+            <h3 className="text-xl font-semibold mb-2 text-slate-800 text-center">
+              Confirm Deletion
+            </h3>
+            <p className="text-sm text-slate-600 text-center mb-2">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-slate-800">{confirmDelete.name}</span>{" "}
+              <span className="text-slate-500">({confirmDelete.role})</span>?
+            </p>
+            <div className="text-xs text-red-600 font-medium text-center bg-red-50 p-3 rounded-lg border border-red-200 mt-3">
+              This will permanently delete the user and all associated data.
+            </div>
 
-              <div className="flex justify-end gap-2 mt-6">
-                <button
-                  onClick={() => setConfirmDelete(null)}
-                  className="px-4 py-2 rounded-md bg-slate-200 text-slate-800 text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => deleteUser(confirmDelete._id)}
-                  className="px-4 py-2 rounded-md bg-rose-600 text-white text-sm"
-                >
-                  Delete Permanently
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div className="flex justify-center gap-3 mt-6">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="px-5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteUser(confirmDelete._id)}
+                className="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-all shadow-sm"
+              >
+                Delete Permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes progress {
+          from {
+            width: 0%;
+          }
+          to {
+            width: 100%;
+          }
+        }
+
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .animate-slide-in {
+          animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        .animate-scale-in {
+          animation: scaleIn 0.2s ease-out forwards;
+        }
+
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,327 +1,396 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 const getInitialAuth = () => {
-    try {
-        return {
-            user: JSON.parse(localStorage.getItem("user")),
-            token: localStorage.getItem("token"),
-        };
-    } catch (e) {
-        return { user: null, token: null };
-    }
+  try {
+    return {
+      user: JSON.parse(localStorage.getItem("user")),
+      token: localStorage.getItem("token")
+    };
+  } catch {
+    return { user: null, token: null };
+  }
 };
 
 const API_BASE_URL = "http://localhost:5000/api/professor";
 
 export default function ProfessorDashboard() {
-    const [auth, setAuth] = useState(getInitialAuth());
-    const [isLoading, setIsLoading] = useState(true);
-    const { user, token } = auth;
-    const [assignments, setAssignments] = useState([]);
-    const [tab, setTab] = useState("pending");
-    const [counts, setCounts] = useState({
-        pending: 0,
-        approved: 0,
-        rejected: 0,
-        reviewed: 0
+  const [auth, setAuth] = useState(getInitialAuth());
+  const [isLoading, setIsLoading] = useState(true);
+  const { user, token } = auth;
+
+  const [assignments, setAssignments] = useState([]);
+  const [tab, setTab] = useState("pending");
+  const [counts, setCounts] = useState({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    reviewed: 0
+  });
+  const [toast, setToast] = useState(null);
+  const [loadingAssignments, setLoadingAssignments] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setAuth(getInitialAuth());
+      setIsLoading(false);
+    }, 50);
+    return () => clearTimeout(t);
+  }, []);
+
+  const showToast = (msg, isError = false) => {
+    setToast({ msg, isError });
+    setTimeout(() => setToast(null), 2000);
+  };
+
+  const loadCounts = useCallback(async () => {
+    if (!token) return;
+    const res = await fetch(`${API_BASE_URL}/assignments-counts`, {
+      headers: { Authorization: "Bearer " + token }
     });
-    const [toast, setToast] = useState(null);
+    const data = await res.json();
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setAuth(getInitialAuth());
-            setIsLoading(false);
-        }, 50);
-        return () => clearTimeout(timer);
-    }, []);
+    setCounts({
+      pending: (data.pending || 0) + (data.rechecking || 0),
+      approved: data.approved || 0,
+      rejected: data.rejected || 0,
+      reviewed: (data.approved || 0) + (data.rejected || 0)
+    });
+  }, [token]);
 
-    const showToast = useCallback((message, isError = false) => {
-        setToast({ message, isError });
-        setTimeout(() => setToast(null), 2000);
-    }, []);
-
-    const loadCounts = useCallback(async () => {
-        if (!token) return;
-        try {
-            const res = await fetch(`${API_BASE_URL}/assignments-counts`, {
-                headers: { Authorization: "Bearer " + token }
-            });
-            if (res.ok) {
-                setCounts(await res.json());
-            }
-        } catch {}
-    }, [token]);
-
-    const fetchAssignments = useCallback(async () => {
-        if (!token) return;
-        try {
-            const res = await fetch(`${API_BASE_URL}/assignments/${tab}`, {
-                headers: { Authorization: "Bearer " + token }
-            });
-            if (res.ok) {
-                setAssignments(await res.json());
-            }
-        } catch {}
-    }, [tab, token]);
-
-    const changeStatus = useCallback(
-        async (id, status) => {
-            if (!user || !user.id || !user.name || !token) {
-                showToast("User session error.", true);
-                return;
-            }
-            const payload = {
-                reviewerId: user.id,
-                reviewerName: user.name
-            };
-            try {
-                const res = await fetch(
-                    `${API_BASE_URL}/assignments/${id}/${status}`,
-                    {
-                        method: "PATCH",
-                        headers: {
-                            Authorization: "Bearer " + token,
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify(payload)
-                    }
-                );
-                if (res.ok) {
-                    fetchAssignments();
-                    loadCounts();
-                } else {
-                    const data = await res.json().catch(() => ({}));
-                    showToast(data.message || "Error updating status.", true);
-                }
-            } catch {
-                showToast("Network error during status update.", true);
-            }
-        },
-        [showToast, fetchAssignments, loadCounts, user, token]
-    );
-
-    const openFile = useCallback(
-        async (id) => {
-            if (!token) {
-                showToast("Authentication token is missing.", true);
-                return;
-            }
-            try {
-                const res = await fetch(`${API_BASE_URL}/assignment/file/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const blob = await res.blob();
-                    const fileURL = URL.createObjectURL(blob);
-                    window.open(fileURL, "_blank");
-                    setTimeout(() => URL.revokeObjectURL(fileURL), 10000);
-                } else {
-                    const text = await res.text().catch(() => "");
-                    try {
-                        const json = JSON.parse(text);
-                        showToast(json.message || "Failed to open file.", true);
-                    } catch {
-                        showToast("Failed to open file. Access denied or file not found.", true);
-                    }
-                }
-            } catch {
-                showToast("Network error or failed to process file download.", true);
-            }
-        },
-        [showToast, token]
-    );
-
-    const logout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/";
-    };
-
-    useEffect(() => {
-        if (!isLoading && token) {
-            fetchAssignments();
-        }
-    }, [tab, isLoading, token, fetchAssignments]);
-
-    useEffect(() => {
-        if (!isLoading && token) {
-            loadCounts();
-        }
-    }, [isLoading, token, loadCounts]);
-
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-100 font-sans">
-                <div className="text-center p-8 bg-white rounded-xl shadow-lg">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-xl font-semibold text-blue-600">Loading Dashboard...</p>
-                </div>
-            </div>
-        );
+  const fetchAssignments = useCallback(async () => {
+    if (!token) return;
+    
+    setLoadingAssignments(true);
+    let url = `${API_BASE_URL}/assignments/${tab}`;
+    if (tab === "pending") {
+      url = `${API_BASE_URL}/assignments/pending`;
     }
 
-    if (!user || !token) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-100 font-sans">
-                <div className="text-center p-8 bg-white rounded-xl shadow-lg">
-                    <p className="text-xl font-semibold text-rose-600 mb-4">Access Denied</p>
-                    <p className="text-slate-600">You must be logged in to view this dashboard.</p>
-                    <button
-                        onClick={logout}
-                        className="mt-4 px-4 py-2 rounded-full bg-blue-500 hover:bg-blue-400 text-sm font-medium text-white shadow-md transition-colors duration-200"
-                    >
-                        Go to Login
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    const res = await fetch(url, {
+      headers: { Authorization: "Bearer " + token }
+    });
 
+    const data = await res.json();
+
+    if (tab === "pending") {
+      setAssignments(
+        data.filter(a => a.status === "pending" || a.status === "rechecking")
+      );
+    } else {
+      setAssignments(data);
+    }
+    setLoadingAssignments(false);
+  }, [tab, token]);
+
+  const changeStatus = async (id, status) => {
+    const res = await fetch(
+      `${API_BASE_URL}/assignments/${id}/${status}`,
+      {
+        method: "PATCH",
+        headers: { Authorization: "Bearer " + token }
+      }
+    );
+
+    if (res.ok) {
+      showToast(`Assignment ${status}d successfully!`);
+      fetchAssignments();
+      loadCounts();
+    } else {
+      showToast("Action failed", true);
+    }
+  };
+
+  const openFile = async (id) => {
+    const res = await fetch(`${API_BASE_URL}/assignment/file/${id}`, {
+      headers: { Authorization: "Bearer " + token }
+    });
+    const blob = await res.blob();
+    window.open(URL.createObjectURL(blob), "_blank");
+  };
+
+  const logout = () => {
+    localStorage.clear();
+    window.location.href = "/";
+  };
+
+  useEffect(() => {
+    if (!isLoading && token) {
+      fetchAssignments();
+      loadCounts();
+    }
+  }, [tab, isLoading, token]);
+
+  if (isLoading || !user) {
     return (
-        <div className="min-h-screen bg-slate-100 font-sans">
-            <AnimatePresence>
-                {toast && (
-                    <motion.div
-                        initial={{ opacity: 0, x: 100 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 100 }}
-                        transition={{ duration: 0.3 }}
-                        className={`fixed top-5 right-5 z-50 p-4 rounded-xl shadow-xl text-sm font-medium ${toast.isError ? "bg-rose-500 text-white" : "bg-emerald-500 text-white"}`}
-                    >
-                        {toast.message}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            <header className="w-full bg-white/80 backdrop-blur border-b border-slate-200 py-3 px-6 flex justify-between items-center shadow-sm sticky top-0 z-10">
-                <div>
-                    <h1 className="text-base font-semibold tracking-tight text-slate-900">
-                        👨‍🏫 {user?.name?.toUpperCase()}
-                    </h1>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                        {user?.email} • {user?.role?.toUpperCase()} • {user?.department?.toUpperCase()}
-                    </p>
-                </div>
-                <button
-                    onClick={logout}
-                    className="px-4 py-2 rounded-full bg-rose-500 hover:bg-rose-400 text-xs font-medium text-white shadow-md transition-colors duration-200"
-                >
-                    Logout
-                </button>
-            </header>
-
-            <div className="p-4 sm:p-6 max-w-5xl mx-auto">
-                <h1 className="text-3xl font-bold mb-6 text-slate-800">Assignment Review Dashboard</h1>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div onClick={() => setTab("pending")} className={`p-4 rounded-xl cursor-pointer hover:scale-[1.02] transition-all duration-300 shadow-md ${tab === 'pending' ? 'bg-blue-600 text-white' : 'bg-white hover:bg-blue-50 text-slate-700 border border-blue-200'}`}>
-                        <h2 className="text-2xl font-bold">{counts.pending}</h2>
-                        <p className="text-sm">Pending Review</p>
-                    </div>
-                    <div onClick={() => setTab("approved")} className={`p-4 rounded-xl cursor-pointer hover:scale-[1.02] transition-all duration-300 shadow-md ${tab === 'approved' ? 'bg-green-600 text-white' : 'bg-white hover:bg-green-50 text-slate-700 border border-green-200'}`}>
-                        <h2 className="text-2xl font-bold">{counts.approved}</h2>
-                        <p className="text-sm">Approved</p>
-                    </div>
-                    <div onClick={() => setTab("rejected")} className={`p-4 rounded-xl cursor-pointer hover:scale-[1.02] transition-all duration-300 shadow-md ${tab === 'rejected' ? 'bg-red-600 text-white' : 'bg-white hover:bg-red-50 text-slate-700 border border-red-200'}`}>
-                        <h2 className="text-2xl font-bold">{counts.rejected}</h2>
-                        <p className="text-sm">Rejected</p>
-                    </div>
-                    <div onClick={() => setTab("reviewed")} className={`p-4 rounded-xl cursor-pointer hover:scale-[1.02] transition-all duration-300 shadow-md ${tab === 'reviewed' ? 'bg-gray-700 text-white' : 'bg-white hover:bg-gray-100 text-slate-700 border border-gray-300'}`}>
-                        <h2 className="text-2xl font-bold">{counts.reviewed}</h2>
-                        <p className="text-sm">Total Reviewed</p>
-                    </div>
-                </div>
-
-                <h2 className="text-xl font-semibold mb-4 text-slate-700 border-b pb-2">
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)} Assignments ({assignments.length})
-                </h2>
-
-                <div className="space-y-4">
-                    {assignments.length === 0 ? (
-                        <div className="p-6 bg-white rounded-xl shadow-inner text-center text-gray-500">
-                            <p className="text-lg">🎉 No {tab} assignments found.</p>
-                            {tab === 'pending' && <p className="text-sm mt-1">Time for a coffee break!</p>}
-                        </div>
-                    ) : (
-                        assignments.map((a) => (
-                            <motion.div
-                                key={a._id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="p-4 bg-white rounded-xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center border border-slate-200"
-                            >
-                                <div className="mb-3 md:mb-0">
-                                    <h3 className="font-bold text-lg text-slate-800 leading-tight">{a.title}</h3>
-                                    <p className="text-sm font-medium text-blue-600 mt-1">
-                                        Student: {a.studentName} ({a.studentEmail})
-                                    </p>
-
-                                    {tab !== "pending" && a.reviewerId && (
-                                        <p className="text-xs mt-1 text-slate-500">
-                                            {a.status.charAt(0).toUpperCase() + a.status.slice(1)} by{" "}
-                                            <span className="font-semibold">
-                                                {a.reviewerId === user.id ? "You" : a.reviewerName}
-                                            </span>
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="flex flex-wrap gap-2 md:gap-3">
-                                    <button
-                                        onClick={() => openFile(a.fileUrl || a._id)}
-                                        className="flex-shrink-0 px-4 py-2 bg-gray-600 text-white text-sm rounded-full hover:bg-gray-500 transition shadow-md"
-                                    >
-                                        📂 Open File
-                                    </button>
-
-                                    {tab === "pending" && (
-                                        <>
-                                            <button
-                                                onClick={() => changeStatus(a._id, "approve")}
-                                                className="flex-shrink-0 px-4 py-2 bg-green-500 text-white text-sm rounded-full hover:bg-green-600 transition shadow-md"
-                                            >
-                                                ✅ Approve
-                                            </button>
-                                            <button
-                                                onClick={() => changeStatus(a._id, "reject")}
-                                                className="flex-shrink-0 px-4 py-2 bg-red-500 text-white text-sm rounded-full hover:bg-red-600 transition shadow-md"
-                                            >
-                                                ❌ Reject
-                                            </button>
-                                        </>
-                                    )}
-
-                                    {tab !== "pending" && a.reviewerId === user.id && a.status === "approved" && (
-                                        <button
-                                            onClick={() => changeStatus(a._id, "reject")}
-                                            className="flex-shrink-0 px-3 py-2 bg-yellow-600 text-white text-sm rounded-full hover:bg-yellow-700 transition shadow-md"
-                                        >
-                                            ⚠️ Revert to Rejected
-                                        </button>
-                                    )}
-
-                                    {tab !== "pending" && a.reviewerId === user.id && a.status === "rejected" && (
-                                        <button
-                                            onClick={() => changeStatus(a._id, "approve")}
-                                            className="flex-shrink-0 px-3 py-2 bg-blue-500 text-white text-sm rounded-full hover:bg-blue-600 transition shadow-md"
-                                        >
-                                            🔄 Revert to Approved
-                                        </button>
-                                    )}
-
-                                    {tab !== "pending" && a.reviewerId !== user.id && (
-                                        <span className={`px-3 py-2 text-sm rounded-full font-medium shadow-inner ${a.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                            {a.status.charAt(0).toUpperCase() + a.status.slice(1)} (Read-Only)
-                                        </span>
-                                    )}
-                                </div>
-                            </motion.div>
-                        ))
-                    )}
-                </div>
-            </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
+        <div className="p-8 bg-white rounded-2xl shadow-lg border border-slate-200">
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="font-semibold text-slate-700 text-center">Loading Dashboard...</p>
         </div>
+      </div>
     );
+  }
+
+  const tabConfig = {
+    pending: { icon: "⏳", color: "from-amber-500 to-orange-500", bgColor: "bg-amber-50", borderColor: "border-amber-200", textColor: "text-amber-700" },
+    approved: { icon: "✓", color: "from-emerald-500 to-green-500", bgColor: "bg-emerald-50", borderColor: "border-emerald-200", textColor: "text-emerald-700" },
+    rejected: { icon: "✕", color: "from-red-500 to-rose-500", bgColor: "bg-red-50", borderColor: "border-red-200", textColor: "text-red-700" },
+    reviewed: { icon: "📊", color: "from-blue-500 to-indigo-500", bgColor: "bg-blue-50", borderColor: "border-blue-200", textColor: "text-blue-700" }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
+      {/* Toast */}
+      {toast && (
+        <div
+          className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium backdrop-blur-sm ${
+            toast.isError
+              ? "bg-red-50 border border-red-200 text-red-700"
+              : "bg-emerald-50 border border-emerald-200 text-emerald-700"
+          }`}
+          style={{
+            animation: 'slideInRight 0.3s ease-out forwards'
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-lg">{toast.isError ? "✕" : "✓"}</span>
+            {toast.msg}
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <header className="w-full bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
+              <span className="text-2xl">👨‍🏫</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold text-slate-800">
+                {user.name}
+              </h1>
+              <p className="text-xs text-slate-500 flex items-center gap-2">
+                <span className="inline-block w-2 h-2 bg-emerald-500 rounded-full"></span>
+                Professor • {user.department.toUpperCase()}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={logout}
+            className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-800 text-xs font-medium text-white shadow-sm transition-all flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+          </button>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-6 py-8 animate-fade-in">
+        {/* Page Title */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">
+            Assignment Review
+          </h1>
+          <p className="text-slate-500 text-sm">
+            Review and manage student assignments
+          </p>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {Object.keys(tabConfig).map((t, idx) => (
+            <div
+              key={t}
+              onClick={() => setTab(t)}
+              className={`group relative p-5 rounded-2xl cursor-pointer transition-all duration-300 ${
+                tab === t
+                  ? `bg-gradient-to-br ${tabConfig[t].color} text-white shadow-xl scale-[1.02]`
+                  : "bg-white text-slate-700 border-2 border-slate-200 hover:border-slate-300 hover:shadow-lg"
+              }`}
+              style={{
+                animation: `fadeInUp 0.4s ease-out ${idx * 0.1}s forwards`,
+                opacity: 0
+              }}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  tab === t ? "bg-white/20" : tabConfig[t].bgColor
+                }`}>
+                  <span className="text-xl">{tabConfig[t].icon}</span>
+                </div>
+                <h2 className="text-3xl font-bold">{counts[t]}</h2>
+              </div>
+              <p className="text-sm font-medium capitalize opacity-90">{t}</p>
+              <div className={`absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transition-all ${
+                tab === t ? "bg-white/30" : "bg-slate-500/0 group-hover:bg-slate-500/10"
+              }`}></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Assignments Section */}
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${tabConfig[tab].bgColor}`}>
+                  <span className="text-xl">{tabConfig[tab].icon}</span>
+                </div>
+                <span className="capitalize">{tab} Assignments</span>
+              </h2>
+              <span className="px-3 py-1 bg-slate-200 text-slate-700 text-sm font-semibold rounded-full">
+                {assignments.length}
+              </span>
+            </div>
+          </div>
+
+          <div className="p-6">
+            {loadingAssignments ? (
+              <div className="text-center py-16">
+                <div className="inline-block w-12 h-12 border-4 border-slate-200 border-t-slate-600 rounded-full animate-spin mb-4"></div>
+                <p className="text-slate-500 text-sm font-medium">Loading assignments...</p>
+              </div>
+            ) : assignments.length === 0 ? (
+              <div className="text-center py-16 bg-slate-50 rounded-xl">
+                <span className="text-6xl mb-4 block opacity-50">📋</span>
+                <p className="text-slate-600 font-medium mb-1">No assignments found</p>
+                <p className="text-slate-400 text-sm">There are no {tab} assignments at the moment</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {assignments.map((a, idx) => (
+                  <div
+                    key={a._id}
+                    className="group p-5 bg-slate-50 rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-200"
+                    style={{
+                      animation: `fadeIn 0.4s ease-out ${idx * 0.05}s forwards`,
+                      opacity: 0
+                    }}
+                  >
+                    <div className="flex flex-col lg:flex-row justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                            {a.title.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-base text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">
+                              {a.title}
+                            </h3>
+                            <div className="flex flex-wrap gap-3 text-xs mb-2">
+                              <span className="flex items-center gap-1.5 text-slate-600">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                {a.studentName}
+                              </span>
+                              <span className="flex items-center gap-1.5 text-slate-500">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                {a.studentEmail}
+                              </span>
+                            </div>
+
+                            {a.status === "rechecking" && (
+                              <div className="mt-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                                <p className="text-xs font-medium text-amber-700 flex items-center gap-2">
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                  </svg>
+                                  HOD sent this assignment for rechecking
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap lg:flex-nowrap gap-2 lg:items-start">
+                        <button
+                          onClick={() => openFile(a.fileUrl)}
+                          className="flex-1 lg:flex-none px-4 py-2.5 bg-slate-600 hover:bg-slate-700 text-white text-xs rounded-lg font-medium shadow-sm transition-all flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Open File
+                        </button>
+
+                        {(a.status === "pending" || a.status === "rechecking") && (
+                          <>
+                            <button
+                              onClick={() => changeStatus(a._id, "approve")}
+                              className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs rounded-lg font-medium shadow-sm transition-all flex items-center justify-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => changeStatus(a._id, "reject")}
+                              className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs rounded-lg font-medium shadow-sm transition-all flex items-center justify-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              Reject
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  );
 }

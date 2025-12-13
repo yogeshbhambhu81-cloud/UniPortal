@@ -5,6 +5,7 @@ import Login from "./autharisation/login";
 import Admin from "./pages/admin";
 import StudentAssignment from "./pages/student";
 import ProfessorDashboard from "./pages/professor";
+import HodDashboard from "./pages/hod";
 import DepartmentManagement from "./pages/departmentpage";
 import ProtectedRoute from "./protectroutes";
 import { ToastProvider } from "./components/Toast";
@@ -50,6 +51,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfessorDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/hod"
+            element={
+              <ProtectedRoute>
+                <HodDashboard />
               </ProtectedRoute>
             }
           />

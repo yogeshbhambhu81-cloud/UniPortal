@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 export default function DepartmentManagement() {
-  const navigate = useNavigate();
   const [departments, setDepartments] = useState([]);
   const [newDepartmentName, setNewDepartmentName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -35,8 +31,9 @@ export default function DepartmentManagement() {
     }
   };
 
-  const addDepartment = async (e) => {
-    e.preventDefault();
+  const addDepartment = async () => {
+    if (!newDepartmentName.trim()) return;
+    
     setAdding(true);
     try {
       const res = await fetch("http://localhost:5000/api/department", {
@@ -82,115 +79,172 @@ export default function DepartmentManagement() {
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      addDepartment();
+    }
+  };
+
   useEffect(() => {
     fetchDepartments();
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200 text-slate-900 p-6">
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
-            transition={{ duration: 0.3 }}
-            className={`fixed top-5 right-5 z-50 p-4 rounded-xl shadow-xl text-sm font-medium transition-colors ${
-              toast.isError
-                ? "bg-rose-500 text-white"
-                : "bg-emerald-500 text-white"
-            }`}
-          >
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 text-slate-800 p-6">
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium backdrop-blur-sm ${
+            toast.isError
+              ? "bg-red-50 border border-red-200 text-red-700"
+              : "bg-emerald-50 border border-emerald-200 text-emerald-700"
+          }`}
+          style={{
+            animation: 'slideInRight 0.3s ease-out forwards'
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-lg">{toast.isError ? "✕" : "✓"}</span>
             {toast.message}
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate("/admin")}
-              className="p-2 rounded-full bg-slate-200 hover:bg-slate-300 shadow-sm transition"
+              onClick={() => window.history.back()}
+              className="p-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all"
             >
-              <ArrowLeftIcon className="h-5 w-5 text-slate-700" />
+              <svg className="h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
             </button>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-                Manage Departments
+              <h1 className="text-3xl font-semibold text-slate-800">
+                Department Management
               </h1>
-              <p className="text-sm text-slate-500 mt-1">
-                Add and remove university departments.
+              <p className="text-sm text-slate-500 mt-0.5">
+                Add and organize university departments
               </p>
             </div>
           </div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/90 backdrop-blur border border-slate-200 rounded-2xl p-6 shadow-sm"
-        >
-          <h2 className="text-lg font-semibold mb-4">Add New Department</h2>
-          <form onSubmit={addDepartment} className="flex gap-4">
+        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <h2 className="text-lg font-semibold mb-4 text-slate-800">Add New Department</h2>
+          <div className="flex gap-3">
             <input
               type="text"
               value={newDepartmentName}
               onChange={(e) => setNewDepartmentName(e.target.value)}
-              placeholder="e.g., Electrical Engineering"
-              required
-              className="flex-grow p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-900 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-300"
+              onKeyPress={handleKeyPress}
+              placeholder="e.g., Computer Science"
+              className="flex-grow px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg outline-none text-slate-700 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-300 transition-all"
             />
             <button
-              type="submit"
-              disabled={adding}
-              className="px-5 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-sm font-medium text-white shadow-md flex items-center gap-2 disabled:bg-slate-300"
+              onClick={addDepartment}
+              disabled={adding || !newDepartmentName.trim()}
+              className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-medium text-white shadow-sm flex items-center gap-2 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all"
             >
-              <PlusIcon className="h-5 w-5" />
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
               {adding ? "Adding..." : "Add Department"}
             </button>
-          </form>
-        </motion.div>
+          </div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white/90 backdrop-blur border border-slate-200 rounded-2xl p-6 shadow-sm"
-        >
-          <h2 className="text-lg font-semibold mb-4">Existing Departments ({departments.length})</h2>
+        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <h2 className="text-lg font-semibold mb-4 text-slate-800">
+            Existing Departments 
+            <span className="text-sm font-normal text-slate-500 ml-2">
+              ({departments.length} {departments.length === 1 ? 'department' : 'departments'})
+            </span>
+          </h2>
+          
           {loading ? (
-            <div className="text-center py-12 text-slate-500">Loading...</div>
+            <div className="text-center py-16">
+              <div className="inline-block w-10 h-10 border-3 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+              <p className="text-slate-500 mt-3 text-sm font-medium">Loading departments...</p>
+            </div>
           ) : departments.length === 0 ? (
-            <p className="text-slate-500 text-sm py-4">No departments have been added yet.</p>
+            <div className="text-center py-10 bg-slate-50 rounded-lg border border-slate-200">
+              <span className="text-4xl mb-2 block">📚</span>
+              <p className="text-slate-500 text-sm font-medium">No departments added yet</p>
+            </div>
           ) : (
-            <div className="space-y-3">
-              <AnimatePresence>
-                {departments.map((dept) => (
-                  <motion.div
-                    key={dept._id}
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex items-center justify-between p-3 border border-slate-100 bg-slate-50 rounded-lg shadow-sm"
+            <div className="space-y-2">
+              {departments.map((dept, idx) => (
+                <div
+                  key={dept._id}
+                  className="flex items-center justify-between p-4 border border-slate-200 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                  style={{
+                    animation: `fadeIn 0.3s ease-out ${idx * 0.05}s forwards`,
+                    opacity: 0
+                  }}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm text-slate-800">{dept.name}</span>
+                    <span className="text-xs text-slate-500 mt-0.5">Slug: {dept.slug}</span>
+                  </div>
+                  <button
+                    onClick={() => deleteDepartment(dept._id)}
+                    className="p-2 rounded-lg text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all"
+                    title="Delete department"
                   >
-                    <div className="flex flex-col">
-                        <span className="font-medium text-sm">{dept.name}</span>
-                        <span className="text-xs text-slate-500">Slug: {dept.slug}</span>
-                    </div>
-                    <button
-                      onClick={() => deleteDepartment(dept._id)}
-                      className="p-2 rounded-full text-rose-500 hover:bg-rose-100 transition"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </div>
   );
 }
