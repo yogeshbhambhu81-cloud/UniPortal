@@ -64,25 +64,39 @@ router.get("/assignments/:tab", async (req, res) => {
 });
 
 router.patch("/assignments/:id/:action", async (req, res) => {
-  const target = req.params.action === "approve" ? "approved" : "rejected";
+  const { id, action } = req.params;
+  const target = action === "approve" ? "approved" : "rejected";
 
-  const updated = await Assignment.findOneAndUpdate(
-    { _id: req.params.id, department: req.user.department },
-    {
-      status: target,
-      reviewerId: req.user.id,
-      reviewerName: req.user.name,
-      reviewedAt: new Date()
-    },
-    { new: true }
-  );
-
-  if (!updated) {
+  const assignment = await Assignment.findById(id);
+  if (!assignment) {
     return res.status(404).json({ message: "Assignment not found" });
   }
 
-  res.json(updated);
+  // Department check
+  if (assignment.department !== req.user.department) {
+    return res.status(403).json({ message: "Unauthorized" });
+  }
+
+  // 🔒 If already reviewed, only same professor can update
+  if (
+    ["approved", "rejected"].includes(assignment.status) &&
+    assignment.reviewerId &&
+    assignment.reviewerId.toString() !== req.user.id
+  ) {
+    return res
+      .status(403)
+      .json({ message: "Only original reviewer can update this assignment" });
+  }
+
+  assignment.status = target;
+  assignment.reviewerId = req.user.id;
+  assignment.reviewerName = req.user.name;
+  assignment.reviewedAt = new Date();
+
+  await assignment.save();
+  res.json(assignment);
 });
+
 
 router.get("/assignment/file/:id", async (req, res) => {
   const bucket = req.app.locals.bucket;

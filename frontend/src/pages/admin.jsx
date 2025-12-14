@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Admin() {
   const [users, setUsers] = useState({ student: [], professor: [], hod: [], counts: {} });
@@ -9,6 +11,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [toast, setToast] = useState(null);
+  const navigate = useNavigate();
 
   const showToast = (message, isError = false) => {
     setToast({ message, isError });

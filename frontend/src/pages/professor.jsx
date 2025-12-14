@@ -82,23 +82,74 @@ export default function ProfessorDashboard() {
     setLoadingAssignments(false);
   }, [tab, token]);
 
-  const changeStatus = async (id, status) => {
-    const res = await fetch(
-      `${API_BASE_URL}/assignments/${id}/${status}`,
-      {
-        method: "PATCH",
-        headers: { Authorization: "Bearer " + token }
-      }
-    );
+const changeStatus = async (id, status) => {
+  const prevAssignment = assignments.find(a => a._id === id);
+  if (!prevAssignment) return;
 
-    if (res.ok) {
-      showToast(`Assignment ${status}d successfully!`);
-      fetchAssignments();
-      loadCounts();
-    } else {
-      showToast("Action failed", true);
+  const prevStatus = prevAssignment.status;
+
+  const res = await fetch(
+    `${API_BASE_URL}/assignments/${id}/${status}`,
+    {
+      method: "PATCH",
+      headers: { Authorization: "Bearer " + token }
     }
-  };
+  );
+
+  if (!res.ok) {
+    showToast("Action failed", true);
+    return;
+  }
+
+  const updated = await res.json();
+
+  setAssignments(prev =>
+    prev.map(a =>
+      a._id === id
+        ? {
+            ...a,
+            status: updated.status,
+            reviewerId: updated.reviewerId,
+            reviewerName: updated.reviewerName
+          }
+        : a
+    )
+  );
+
+  setCounts(prev => {
+    const next = { ...prev };
+
+    if (prevStatus === "pending" || prevStatus === "rechecking") {
+      next.pending = Math.max(0, next.pending - 1);
+    }
+
+    if (prevStatus === "approved") {
+      next.approved = Math.max(0, next.approved - 1);
+    }
+
+    if (prevStatus === "rejected") {
+      next.rejected = Math.max(0, next.rejected - 1);
+    }
+
+    if (updated.status === "approved") {
+      next.approved += 1;
+    }
+
+    if (updated.status === "rejected") {
+      next.rejected += 1;
+    }
+
+    next.reviewed = next.approved + next.rejected;
+    return next;
+  });
+
+  showToast(
+    `Assignment ${updated.status.charAt(0).toUpperCase() +
+      updated.status.slice(1)} successfully!`
+  );
+};
+
+
 
   const openFile = async (id) => {
     const res = await fetch(`${API_BASE_URL}/assignment/file/${id}`, {
@@ -295,6 +346,36 @@ export default function ProfessorDashboard() {
                                 {a.studentEmail}
                               </span>
                             </div>
+                            {a.reviewerName && (
+ <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+  {a.reviewerId === user.id ? (
+    <>
+      <span
+        className={
+          a.status === "rejected" ? "text-red-600" : "text-emerald-600"
+        }
+      >
+        {a.status === "rejected" ? "✕" : "✔"}
+      </span>
+      {a.status.charAt(0).toUpperCase() + a.status.slice(1)} by you
+    </>
+  ) : (
+    <>
+      <span
+        className={
+          a.status === "rejected" ? "text-red-600" : "text-emerald-600"
+        }
+      >
+        {a.status === "rejected" ? "✕" : "✔"}
+      </span>
+      {a.status.charAt(0).toUpperCase() + a.status.slice(1)} by {a.reviewerName}
+    </>
+  )}
+</p>
+
+
+)}
+
 
                             {a.status === "rechecking" && (
                               <div className="mt-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
@@ -321,28 +402,26 @@ export default function ProfessorDashboard() {
                           Open File
                         </button>
 
-                        {(a.status === "pending" || a.status === "rechecking") && (
-                          <>
-                            <button
-                              onClick={() => changeStatus(a._id, "approve")}
-                              className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs rounded-lg font-medium shadow-sm transition-all flex items-center justify-center gap-2"
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => changeStatus(a._id, "reject")}
-                              className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs rounded-lg font-medium shadow-sm transition-all flex items-center justify-center gap-2"
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                              Reject
-                            </button>
-                          </>
-                        )}
+                      {(a.status === "pending" ||
+  a.status === "rechecking" ||
+  a.reviewerId === user.id) && (
+  <>
+    <button
+      onClick={() => changeStatus(a._id, "approve")}
+      className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-xs rounded-lg font-medium"
+    >
+      Approve
+    </button>
+
+    <button
+      onClick={() => changeStatus(a._id, "reject")}
+      className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs rounded-lg font-medium"
+    >
+      Reject
+    </button>
+  </>
+)}
+
                       </div>
                     </div>
                   </div>
