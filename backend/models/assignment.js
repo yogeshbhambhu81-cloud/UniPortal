@@ -24,9 +24,18 @@ const assignmentSchema = new mongoose.Schema(
     reviewedAt: Date,
     hodReviewedAt: Date,
 
-    recheckNote: String
+    recheckNote: String,
+
+    submittedAt: {
+      type: Date,
+      default: Date.now
+    },
+
+    submittedAtFormatted: String
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Assignment", assignmentSchema);
+const Assignment = mongoose.model("Assignment", assignmentSchema);
+
+export default Assignment;

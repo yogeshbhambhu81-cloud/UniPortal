@@ -8,6 +8,15 @@ import auth from "../middleware/auth.js";
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+const formatDate = (date) => {
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+  const d = new Date(date);
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+};
+
 router.post("/upload", auth, upload.single("assignment"), async (req, res) => {
   try {
     const stream = req.app.locals.bucket.openUploadStream(
@@ -26,6 +35,8 @@ router.post("/upload", auth, upload.single("assignment"), async (req, res) => {
 
       const student = await User.findById(req.user.id);
 
+      const now = new Date();
+
       const assignment = await Assignment.create({
         studentName: student.name,
         studentEmail: student.email,
@@ -33,7 +44,9 @@ router.post("/upload", auth, upload.single("assignment"), async (req, res) => {
         department: student.department,
         title: req.body.title,
         fileUrl: file._id.toString(),
-        status: "pending"
+        status: "pending",
+        submittedAt: now,
+        submittedAtFormatted: formatDate(now)
       });
 
       res.json(assignment);
@@ -50,6 +63,7 @@ router.post("/upload", auth, upload.single("assignment"), async (req, res) => {
 router.get("/all/:email", auth, async (req, res) => {
   try {
     const email = req.user.email;
+
     const assignments = await Assignment.find({ studentEmail: email }).lean();
 
     const result = await Promise.all(
@@ -64,7 +78,9 @@ router.get("/all/:email", auth, async (req, res) => {
           uploadDate: fileDetails?.uploadDate || null,
           title: a.title,
           status: a.status,
-          reviewerName: a.reviewerName || "N/A"
+          reviewerName: a.reviewerName || "N/A",
+          submittedAt: a.submittedAt,
+          submittedAtFormatted: a.submittedAtFormatted
         };
       })
     );

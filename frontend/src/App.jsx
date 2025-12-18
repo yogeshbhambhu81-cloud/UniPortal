@@ -10,6 +10,9 @@ import DepartmentManagement from "./pages/departmentpage";
 import ProtectedRoute from "./protectroutes";
 import { ToastProvider } from "./components/Toast";
 import "./App.css";
+import MyAssignments from "./pages/MyAssignments";
+
+
 
 function App() {
   return (
@@ -62,7 +65,10 @@ function App() {
               </ProtectedRoute>
             }
           />
+           <Route path="/my-assignments" element={<MyAssignments />} />
         </Routes>
+       
+    
       </BrowserRouter>
     </ToastProvider>
   );
