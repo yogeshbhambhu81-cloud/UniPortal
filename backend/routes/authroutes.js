@@ -19,22 +19,29 @@ const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
 const sendOtpEmail = async (email, otp) => {
   try {
     const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+      host: "smtp-relay.brevo.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.BREVO_SMTP_LOGIN,
+        pass: process.env.BREVO_SMTP_KEY
+      }
     });
 
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: process.env.BREVO_SENDER,
       to: email,
       subject: "Your Verification OTP",
       text: `Your OTP code is: ${otp}. It will expire in 10 minutes.`
     });
 
     return true;
-  } catch {
+  } catch (err) {
+    console.error("OTP MAIL ERROR:", err);
     return false;
   }
 };
+
 
 router.post("/signup", async (req, res) => {
   try {

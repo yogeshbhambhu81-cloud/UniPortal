@@ -12,6 +12,15 @@ export default function Admin() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [toast, setToast] = useState(null);
   const navigate = useNavigate();
+  const [showFacultyModal, setShowFacultyModal] = useState(false);
+const [facultyForm, setFacultyForm] = useState({
+  name: "",
+  email: "",
+  password: "",
+  department: "",
+  role: "professor",
+});
+
 
   const showToast = (message, isError = false) => {
     setToast({ message, isError });
@@ -85,6 +94,34 @@ export default function Admin() {
     else showToast("Error deleting user.", true);
     fetchApprovedUsers();
   };
+  const createFaculty = async () => {
+  const res = await fetch("http://localhost:5000/api/admin/create-faculty", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify(facultyForm),
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    showToast("Faculty created & email sent!");
+    setShowFacultyModal(false);
+    setFacultyForm({
+      name: "",
+      email: "",
+      password: "",
+      department: "",
+      role: "professor",
+    });
+    fetchApprovedUsers();
+  } else {
+    showToast(data.message || "Failed to create faculty", true);
+  }
+};
+
 
   useEffect(() => {
     const loadAll = async () => {
@@ -153,6 +190,14 @@ export default function Admin() {
           </div>
 
           <div className="flex gap-2 items-center">
+            <button
+  onClick={() => setShowFacultyModal(true)}
+  className="p-2.5 rounded-lg bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all"
+  title="Create Faculty"
+>
+  👨‍🏫
+</button>
+
             <button
               onClick={handleManageDepartments}
               className="p-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all"
@@ -502,6 +547,167 @@ export default function Admin() {
           }
         }
       `}</style>
+     {showFacultyModal && (
+  <div 
+    className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+    onClick={() => setShowFacultyModal(false)}
+  >
+    <div
+      className="bg-white rounded-2xl p-6 w-[440px] shadow-2xl border border-slate-200 animate-scale-in"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+            <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-slate-800">
+            Create Faculty Member
+          </h2>
+        </div>
+        <button
+          onClick={() => setShowFacultyModal(false)}
+          className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+        >
+          <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Full Name
+          </label>
+          <input
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-300 transition-all outline-none"
+            placeholder="e.g., Dr. John Smith"
+            value={facultyForm.name}
+            onChange={(e) =>
+              setFacultyForm({ ...facultyForm, name: e.target.value })
+            }
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Email Address
+          </label>
+          <input
+            type="email"
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-300 transition-all outline-none"
+            placeholder="john.smith@university.edu"
+            value={facultyForm.email}
+            onChange={(e) =>
+              setFacultyForm({ ...facultyForm, email: e.target.value })
+            }
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Temporary Password
+          </label>
+          <input
+            type="password"
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-300 transition-all outline-none"
+            placeholder="Enter temporary password"
+            value={facultyForm.password}
+            onChange={(e) =>
+              setFacultyForm({ ...facultyForm, password: e.target.value })
+            }
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Role
+          </label>
+          <select
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-300 transition-all outline-none"
+            value={facultyForm.role}
+            onChange={(e) =>
+              setFacultyForm({ ...facultyForm, role: e.target.value })
+            }
+          >
+            <option value="professor">👨‍🏫 Professor</option>
+            <option value="hod">👔 Head of Department (HOD)</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Department
+          </label>
+          <select
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-300 transition-all outline-none"
+            value={facultyForm.department}
+            onChange={(e) =>
+              setFacultyForm({ ...facultyForm, department: e.target.value })
+            }
+          >
+            <option value="">Select a department</option>
+            {departments.map((d) => (
+              <option key={d.slug} value={d.slug}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="flex gap-3 mt-6 pt-4 border-t border-slate-200">
+        <button
+          onClick={() => setShowFacultyModal(false)}
+          className="flex-1 px-4 py-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-all"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={createFaculty}
+          className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm font-medium shadow-sm transition-all flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Create & Send Email
+        </button>
+      </div>
     </div>
-  );
-}
+  </div>
+)}
+
+<style jsx>{`
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out forwards;
+  }
+`}</style>
+  </div>
+)}
