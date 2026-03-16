@@ -118,6 +118,9 @@ router.post("/verify-otp", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
+    console.log("Login route hit");
+console.log("Request body:", req.body);
+console.log("JWT_SECRET exists:", !!process.env.JWT_SECRET);
     const email = (req.body.email ?? "").trim();
     const password = (req.body.password ?? "").trim();
 
@@ -160,9 +163,14 @@ router.post("/login", async (req, res) => {
         department: user.department
       }
     });
-  } catch {
-    res.status(500).json({ message: "Login error" });
-  }
+  } catch (error) {
+  console.error("LOGIN ERROR:", error);
+  res.status(500).json({
+    message: "Login error",
+    error: error.message,
+    stack: error.stack,
+  });
+}
 });
 
 export default router;
