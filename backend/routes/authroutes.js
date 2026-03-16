@@ -34,7 +34,7 @@ console.log("BREVO_SENDER:", process.env.BREVO_SENDER);
 console.log("SMTP transporter verified");
 
     await transporter.sendMail({
-      from: process.env.BREVO_SENDER,
+      from: `"UniPortal" <${process.env.BREVO_SENDER}>`,
       to: email,
       subject: "Your Verification OTP",
       text: `Your OTP code is: ${otp}. It will expire in 10 minutes.`
