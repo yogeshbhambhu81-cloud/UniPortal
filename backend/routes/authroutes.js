@@ -33,7 +33,7 @@ const sendOtpEmail = async (email, otp) => {
         headers: {
           accept: "application/json",
           "content-type": "application/json",
-          "api-key": process.env.BREVO_API_KEY,
+          "api-key": process.env.BREVO_SMPT_KEY,
         },
       }
     );
