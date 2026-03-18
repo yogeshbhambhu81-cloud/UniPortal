@@ -64,11 +64,9 @@ router.get("/users", auth, isAdmin, async (req, res) => {
     res.json({
       student: allUsers.filter((u) => u.role === "student"),
       professor: allUsers.filter((u) => u.role === "professor"),
-      hod: allUsers.filter((u) => u.role === "hod"),
       counts: {
         student: allUsers.filter((u) => u.role === "student").length,
         professor: allUsers.filter((u) => u.role === "professor").length,
-        hod: allUsers.filter((u) => u.role === "hod").length
       }
     });
   } catch {
@@ -189,7 +187,7 @@ router.post("/create-faculty", auth, isAdmin, async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    if (role !== "professor" && role !== "hod") {
+    if (role !== "professor") {
       return res.status(400).json({ message: "Invalid role" });
     }
 

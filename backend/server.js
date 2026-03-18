@@ -8,7 +8,7 @@ import userRoutes from "./routes/adminroutes.js";
 import studentRoutes from "./routes/student.js";
 import professorRoutes from "./routes/professorRoutes.js";
 import departmentRoutes from "./routes/departmentRoute.js";
-import hodRoutes from "./routes/hod.js";
+// import hodRoutes from "./routes/hod.js";
 
 dotenv.config();
 
@@ -40,7 +40,7 @@ app.use("/api/admin", userRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/professor", professorRoutes);
 app.use("/api/department", departmentRoutes);
-app.use("/api/hod", hodRoutes);
+// app.use("/api/hod", hodRoutes);
 
 app.get("/", (req, res) => res.send("Backend working ✅"));
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 
 export default function Admin() {
-  const [users, setUsers] = useState({ student: [], professor: [], hod: [], counts: {} });
+  const [users, setUsers] = useState({ student: [], professor: [], counts: {} });
   const [pending, setPending] = useState([]);
   const [selectedRole, setSelectedRole] = useState(null);
   const [selectedDepartment, setSelectedDepartment] = useState("all");
@@ -148,13 +148,13 @@ const [facultyForm, setFacultyForm] = useState({
   const roleColors = {
     professor: "from-blue-50 to-indigo-50 border-blue-200",
     student: "from-emerald-50 to-teal-50 border-emerald-200",
-    hod: "from-slate-50 to-gray-100 border-slate-300",
+    // hod: "from-slate-50 to-gray-100 border-slate-300",
   };
 
   const roleIcons = {
     professor: "👨‍🏫",
     student: "🎓",
-    hod: "👔",
+    // hod: "👔",
   };
 
   return (
@@ -221,7 +221,7 @@ const [facultyForm, setFacultyForm] = useState({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {["professor", "student", "hod"].map((role, idx) => (
+          {["professor", "student"].map((role, idx) => (
             <div
               key={role}
               className={`relative p-5 rounded-xl bg-gradient-to-br ${roleColors[role]} border shadow-sm cursor-pointer overflow-hidden group transition-all hover:shadow-md hover:-translate-y-1`}
@@ -634,7 +634,7 @@ const [facultyForm, setFacultyForm] = useState({
             }
           >
             <option value="professor">👨‍🏫 Professor</option>
-            <option value="hod">👔 Head of Department (HOD)</option>
+            {/* <option value="hod">👔 Head of Department (HOD)</option> */}
           </select>
         </div>
 

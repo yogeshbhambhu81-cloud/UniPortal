@@ -18,11 +18,9 @@ const assignmentSchema = new mongoose.Schema(
     reviewerId: String,
     reviewerName: String,
 
-    hodId: String,
-    hodName: String,
+
 
     reviewedAt: Date,
-    hodReviewedAt: Date,
 
     recheckNote: String,
 

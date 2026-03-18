@@ -57,14 +57,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/hod"
             element={
               <ProtectedRoute>
                 <HodDashboard />
               </ProtectedRoute>
             }
-          />
+          /> */}
            <Route path="/my-assignments" element={<MyAssignments />} />
         </Routes>
        
