@@ -124,39 +124,40 @@ export default function MyAssignments() {
 
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
-          <div className="flex items-center gap-4 w-full sm:w-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap sm:flex-nowrap justify-between items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0 min-w-0">
             <button
               onClick={() => window.history.back()}
-              className="p-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition-all"
+              className="p-2 sm:p-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition-all shrink-0"
+              title="Go Back"
             >
-              <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
 
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="hidden sm:flex w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 items-center justify-center shadow-md">
                 <span className="text-2xl">📚</span>
               </div>
-              <div>
-                <h1 className="text-lg font-semibold text-slate-800">
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg font-semibold text-slate-800 truncate">
                   My Assignments
                 </h1>
-                <p className="text-xs text-slate-500">
+                <p className="hidden sm:block text-xs text-slate-500 truncate">
                   View and manage all your submissions
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full sm:w-auto">
+          <div className="flex gap-2 items-center shrink-0">
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:border-slate-400 focus:ring-2 focus:ring-blue-400 focus:border-blue-300 transition-all outline-none"
+              className="w-24 sm:w-auto px-2 sm:px-4 py-2 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm font-medium text-slate-700 hover:border-slate-400 focus:ring-2 focus:ring-blue-400 focus:border-blue-300 transition-all outline-none"
             >
-              <option value="all">All Status</option>
+              <option value="all">All</option>
               <option value="pending">Pending</option>
               <option value="submitted">Submitted</option>
               <option value="approved">Approved</option>
@@ -166,12 +167,13 @@ export default function MyAssignments() {
 
             <button
               onClick={() => setShowUpload(true)}
-              className="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm font-medium shadow-sm transition-all flex items-center gap-2"
+              className="p-2 sm:px-5 sm:py-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs sm:text-sm font-medium shadow-sm transition-all flex items-center justify-center gap-2 shrink-0"
+              title="Upload New"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              Upload New
+              <span className="hidden sm:inline">Upload New</span>
             </button>
           </div>
         </div>

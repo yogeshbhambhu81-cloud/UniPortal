@@ -179,41 +179,41 @@ const [facultyForm, setFacultyForm] = useState({
       )}
 
       <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4 sm:gap-0">
-          <div className="space-y-1 w-full">
-            <h1 className="text-3xl font-semibold text-slate-800">
+        <div className="flex items-center justify-between mb-4 gap-4">
+          <div className="space-y-1 w-full min-w-0">
+            <h1 className="text-xl sm:text-3xl font-semibold text-slate-800 truncate">
               Admin Dashboard
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="hidden sm:block text-sm text-slate-500">
               Manage users and oversee university operations
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 items-center w-full sm:w-auto">
+          <div className="flex gap-2 items-center shrink-0">
             <button
-  onClick={() => setShowFacultyModal(true)}
-  className="p-2.5 rounded-lg bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all"
-  title="Create Faculty"
->
-  👨‍🏫
-</button>
+              onClick={() => setShowFacultyModal(true)}
+              className="p-2 sm:p-2.5 rounded-lg bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all text-sm sm:text-base flex items-center justify-center"
+              title="Create Faculty"
+            >
+              👨‍🏫
+            </button>
 
             <button
               onClick={handleManageDepartments}
-              className="p-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all"
+              className="p-2 sm:p-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all flex items-center justify-center"
               title="Manage Departments"
             >
-              <svg className="h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 sm:h-5 sm:w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
               </svg>
             </button>
 
             <button
               onClick={handleLogout}
-              className="p-2.5 rounded-lg bg-white border border-slate-200 hover:border-red-300 hover:bg-red-50 transition-all"
+              className="p-2 sm:p-2.5 rounded-lg bg-white border border-slate-200 hover:border-red-300 hover:bg-red-50 transition-all flex items-center justify-center"
               title="Logout"
             >
-              <svg className="h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 sm:h-5 sm:w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </button>

@@ -212,30 +212,31 @@ const changeStatus = async (id, status) => {
 
       {/* Header */}
       <header className="w-full bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
-          <div className="flex items-center gap-4 w-full sm:w-auto">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0 min-w-0">
+            <div className="hidden sm:flex w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 items-center justify-center shadow-md">
               <span className="text-2xl">👨‍🏫</span>
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-semibold text-slate-800 truncate">
                 {user.name}
               </h1>
-              <p className="text-xs text-slate-500 flex items-center gap-2">
-                <span className="inline-block w-2 h-2 bg-emerald-500 rounded-full"></span>
-                Professor • {user.department.toUpperCase()}
+              <p className="text-[10px] sm:text-xs text-slate-500 flex items-center gap-1.5 sm:gap-2">
+                <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full shrink-0"></span>
+                <span className="truncate">Professor • {user.department.toUpperCase()}</span>
               </p>
             </div>
           </div>
 
           <button
             onClick={logout}
-            className="w-full sm:w-auto justify-center px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-800 text-xs font-medium text-white shadow-sm transition-all flex items-center gap-2"
+            className="p-2 sm:px-4 sm:py-2 rounded-lg bg-slate-700 hover:bg-slate-800 text-xs font-medium text-white shadow-sm transition-all flex items-center justify-center gap-2 shrink-0"
+            title="Logout"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            Logout
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </header>

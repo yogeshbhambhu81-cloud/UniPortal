@@ -112,21 +112,22 @@ export default function DepartmentManagement() {
       )}
 
       <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4 sm:gap-0">
-          <div className="flex items-start sm:items-center gap-3">
+        <div className="flex justify-between items-center mb-4 gap-4">
+          <div className="flex items-center gap-3 w-full min-w-0">
             <button
               onClick={() => window.history.back()}
-              className="p-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all"
+              className="p-2 sm:p-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all shrink-0"
+              title="Go Back"
             >
-              <svg className="h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 sm:h-5 sm:w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
-            <div>
-              <h1 className="text-3xl font-semibold text-slate-800">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-3xl font-semibold text-slate-800 truncate">
                 Department Management
               </h1>
-              <p className="text-sm text-slate-500 mt-0.5">
+              <p className="hidden sm:block text-sm text-slate-500 mt-0.5 truncate">
                 Add and organize university departments
               </p>
             </div>
