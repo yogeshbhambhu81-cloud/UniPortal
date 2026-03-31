@@ -7,9 +7,10 @@ import PendingUser from "../models/pendinguser.js";
 import jwt from "jsonwebtoken";
 import Department from "../models/department.js";
 import axios from "axios";
+import auth from "../middleware/auth.js";
 import dotenv from "dotenv";
 dotenv.config();
-const SECRET = process.env.SECRET;
+const SECRET = process.env.JWT_SECRET || process.env.SECRET;
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -175,6 +176,75 @@ console.log("JWT_SECRET exists:", !!process.env.JWT_SECRET);
     stack: error.stack,
   });
 }
+});
+
+/* ================= UPDATE PROFILE ================= */
+router.put("/profile", auth, async (req, res) => {
+  try {
+    const { name, currentPassword, password } = req.body;
+    const userId = req.user.id; // from auth middleware
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    let updated = false;
+
+    if (name && name.trim() !== "") {
+      user.name = name.trim();
+      updated = true;
+    }
+
+    if (password && password.trim() !== "") {
+      if (!currentPassword) {
+        return res.status(400).json({ message: "Current password is required to set a new password." });
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ message: "Incorrect current password." });
+      }
+
+      user.password = await bcrypt.hash(password.trim(), 10);
+      updated = true;
+    }
+
+    if (updated) {
+      await user.save();
+    }
+
+    // Re-sign token so frontend can strictly update localStorage without logout
+    const token = jwt.sign(
+      {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department
+      },
+      SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      message: "Profile updated successfully.",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department
+      },
+      token
+    });
+  } catch (error) {
+    console.error("PROFILE UPDATE ERROR:", error);
+    res.status(500).json({ message: "Error updating profile." });
+  }
+});
+
+/* ================= VERIFY TOKEN ================= */
+router.get("/verify", auth, (req, res) => {
+  res.status(200).json({ valid: true, user: req.user });
 });
 
 export default router;

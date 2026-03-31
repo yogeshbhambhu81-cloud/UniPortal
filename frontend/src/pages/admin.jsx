@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import ProfileSidebar from "../components/ProfileSidebar.jsx";
 
 
 export default function Admin() {
@@ -13,6 +14,7 @@ export default function Admin() {
   const [toast, setToast] = useState(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showFacultyModal, setShowFacultyModal] = useState(false);
 const [facultyForm, setFacultyForm] = useState({
   name: "",
@@ -205,6 +207,17 @@ const [facultyForm, setFacultyForm] = useState({
             >
               <svg className="h-5 w-5 sm:h-5 sm:w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => setIsProfileOpen(true)}
+              className="p-2 sm:p-2.5 rounded-lg bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all flex items-center justify-center"
+              title="Profile Settings"
+            >
+              <svg className="h-5 w-5 sm:h-5 sm:w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
 
@@ -426,6 +439,8 @@ const [facultyForm, setFacultyForm] = useState({
           </div>
         </div>
       </div>
+
+      <ProfileSidebar isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
       {/* Delete confirmation modal */}
       {confirmDelete && (

@@ -3,7 +3,7 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
-const SECRET = process.env.SECRET;
+const SECRET = process.env.JWT_SECRET || process.env.SECRET;
 
 
 export default function auth(req, res, next) {
