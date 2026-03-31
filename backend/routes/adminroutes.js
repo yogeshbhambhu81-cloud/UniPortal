@@ -78,7 +78,7 @@ router.get("/users", auth, isAdmin, async (req, res) => {
 
 router.get("/pending", auth, isAdmin, async (req, res) => {
   try {
-    const pending = await PendingUser.find();
+    const pending = await PendingUser.find({ isEmailVerified: true });
     res.json(pending);
   } catch {
     res.status(500).json({ message: "Error fetching pending users" });
@@ -91,6 +91,7 @@ router.post("/approve/:id", auth, isAdmin, async (req, res) => {
   try {
     const pending = await PendingUser.findById(req.params.id);
     if (!pending) return res.status(404).json({ message: "User not found" });
+    if (!pending.isEmailVerified) return res.status(400).json({ message: "User email not verified" });
 
     const newUser = new User({
       name: pending.name,
