@@ -351,7 +351,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
                       </div>
 
                       <a
-                        href={`http://localhost:5000/api/student/file/${file._id}`}
+                        href={`${API_BASE_URL}/api/student/file/${file._id}`}
                         className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-sm transition-all flex items-center gap-1.5"
                         target="_blank"
                         rel="noreferrer"
